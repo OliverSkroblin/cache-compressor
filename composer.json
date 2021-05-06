@@ -1,0 +1,25 @@
+{
+    "name": "oskr/cachecompressor",
+    "description": "",
+    "version": "0.0.1",
+    "type": "shopware-platform-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Oliver Skroblin"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "CacheCompressor\\": "src/"
+        }
+    },
+    "extra": {
+        "shopware-plugin-class": "CacheCompressor\\CacheCompressor",
+        "copyright": "(c) by oliver skroblin",
+        "label": {
+            "de-DE": "Kompression für die verschiedenen Cache Layer",
+            "en-GB": "Compression for different cache layers"
+        }
+    }
+}
