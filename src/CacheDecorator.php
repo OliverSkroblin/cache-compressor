@@ -4,10 +4,11 @@ namespace CacheCompressor;
 
 use Psr\Cache\CacheItemInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
-use Symfony\Component\Cache\CacheItem;
 
 class CacheDecorator implements TagAwareAdapterInterface
 {
+    private const COMPRESSED_MARKER = 'c!';
+
     /**
      * @var TagAwareAdapterInterface
      */
@@ -81,10 +82,17 @@ class CacheDecorator implements TagAwareAdapterInterface
 
     private function compress(CacheItemInterface $item): CacheItemInterface
     {
+        $data = serialize($item->get());
+
         try {
-            $item->set(gzcompress(serialize($item->get()), 9));
+            $compressedData = self::COMPRESSED_MARKER . gzcompress($data, 9);
+            if (strlen($data) > strlen($compressedData)) {
+                $data = $compressedData;
+            }
         } catch (\Throwable $e) {
         }
+
+        $item->set($data);
 
         return $item;
     }
@@ -96,13 +104,19 @@ class CacheDecorator implements TagAwareAdapterInterface
         if (!is_string($value)) {
             return $item;
         }
-        if ($value === null) {
-            return $item;
+
+        if (strpos($value, self::COMPRESSED_MARKER) === 0) {
+            $value = substr($value, strlen(self::COMPRESSED_MARKER));
+            $value = gzuncompress($value);
         }
 
-        $item->set(
-            unserialize(gzuncompress($value))
-        );
+        try {
+            $item->set(
+                unserialize($value)
+            );
+        } catch(\Exception $e) {
+            // this may be an entry saved deferred
+        }
 
         return $item;
     }
